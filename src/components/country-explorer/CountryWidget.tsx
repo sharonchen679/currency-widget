@@ -95,7 +95,7 @@ export function CountryWidget({ safeMode }: CountryWidgetProps) {
         >
           {state.status === "error" && state.code === "SAFE_MODE"
             ? state.message
-            : "Live API calls are blocked because RESTCOUNTRIES_USE_MOCK is enabled. Set RESTCOUNTRIES_USE_MOCK=false in your .env file, then restart the dev server."}
+            : "Live API calls are blocked because SAFE_MODE is enabled. Set SAFE_MODE=false in your .env file, then restart the dev server."}
         </p>
       )}
 
