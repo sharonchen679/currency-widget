@@ -6,7 +6,7 @@ type CountryExplorerProps = {
 
 export function CountryExplorer({ safeMode }: CountryExplorerProps) {
   return (
-    <div className="flex w-full max-w-xl flex-col items-center px-4">
+    <div className="flex w-full max-w-xl flex-col items-center self-start">
       <header className="mb-8 text-center">
         <p className="mb-3 text-[11px] font-semibold tracking-[0.22em] text-sky-600/70 uppercase">
           Rest Countries

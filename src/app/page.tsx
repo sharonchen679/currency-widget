@@ -8,7 +8,7 @@ export default function Home() {
   const safeMode = isSafeModeEnabled();
 
   return (
-    <main className="flex min-h-full flex-1 items-center justify-center px-4 py-16">
+    <main className="flex min-h-full flex-1 justify-center px-4 pt-16 pb-24 sm:pt-20">
       <CountryExplorer safeMode={safeMode} />
     </main>
   );

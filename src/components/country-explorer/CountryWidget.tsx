@@ -87,40 +87,38 @@ export function CountryWidget({ safeMode }: CountryWidgetProps) {
     safeMode || (state.status === "error" && state.code === "SAFE_MODE");
 
   return (
-    <section className="w-full max-w-[440px] rounded-[28px] bg-white p-7 shadow-[0_18px_50px_rgba(15,23,42,0.08)] sm:p-8">
-      {showSafeModeHint && (
-        <p
-          role="status"
-          className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 text-sm leading-relaxed text-amber-900"
-        >
-          {state.status === "error" && state.code === "SAFE_MODE"
-            ? state.message
-            : "Live API calls are blocked because SAFE_MODE is enabled. Set SAFE_MODE=false in your .env file, then restart the dev server."}
-        </p>
-      )}
+    <div className="flex w-full max-w-[440px] flex-col items-stretch">
+      <section className="w-full rounded-[28px] bg-white p-7 shadow-[0_18px_50px_rgba(15,23,42,0.08)] sm:p-8">
+        {showSafeModeHint && (
+          <p
+            role="status"
+            className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 text-sm leading-relaxed text-amber-900"
+          >
+            {state.status === "error" && state.code === "SAFE_MODE"
+              ? state.message
+              : "Live API calls are blocked because SAFE_MODE is enabled. Set SAFE_MODE=false in your .env file, then restart the dev server."}
+          </p>
+        )}
 
-      {state.status === "error" && state.code !== "SAFE_MODE" && (
-        <p
-          role="alert"
-          className="mb-5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-3 text-sm leading-relaxed text-red-800"
-        >
-          {state.message}
-        </p>
-      )}
+        {state.status === "error" && state.code !== "SAFE_MODE" && (
+          <p
+            role="alert"
+            className="mb-5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-3 text-sm leading-relaxed text-red-800"
+          >
+            {state.message}
+          </p>
+        )}
 
-      {state.status === "loading" && (
-        <p className="mb-4 text-sm text-slate-500">Loading countries…</p>
-      )}
+        <CountrySelect
+          countries={state.status === "success" ? state.countries : []}
+          value={selectedCode}
+          onChange={setSelectedCode}
+          disabled={state.status !== "success"}
+          loading={state.status === "loading"}
+        />
 
-      <CountrySelect
-        countries={state.status === "success" ? state.countries : []}
-        value={selectedCode}
-        onChange={setSelectedCode}
-        disabled={state.status !== "success"}
-        loading={state.status === "loading"}
-      />
-
-      {selected && <CountryDetails country={selected} rows={detailRows} />}
-    </section>
+        {selected && <CountryDetails country={selected} rows={detailRows} />}
+      </section>
+    </div>
   );
 }
