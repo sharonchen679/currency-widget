@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { filterCountries } from "@/lib/countries/filter";
 import type { Country } from "@/types/country";
 
 type CountrySelectProps = {
@@ -12,8 +13,8 @@ type CountrySelectProps = {
 };
 
 /**
- * Custom country dropdown (step 1): open/close + full list selection.
- * Search filtering and keyboard navigation come in later steps.
+ * Custom country dropdown with client-side search filtering.
+ * Keyboard navigation can be added in a later step.
  */
 export function CountrySelect({
   countries,
@@ -23,11 +24,18 @@ export function CountrySelect({
   loading = false,
 }: CountrySelectProps) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const rootRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const listId = useId();
 
   const selected = countries.find((country) => country.code === value);
   const isOpen = open && !disabled;
+
+  const filteredCountries = useMemo(
+    () => filterCountries(countries, query),
+    [countries, query],
+  );
 
   useEffect(() => {
     if (!isOpen) return;
@@ -36,7 +44,7 @@ export function CountrySelect({
       const root = rootRef.current;
       if (!root) return;
       if (event.target instanceof Node && !root.contains(event.target)) {
-        setOpen(false);
+        closeMenu();
       }
     }
 
@@ -44,14 +52,28 @@ export function CountrySelect({
     return () => document.removeEventListener("mousedown", handlePointerDown);
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    searchInputRef.current?.focus();
+  }, [isOpen]);
+
+  function closeMenu() {
+    setOpen(false);
+    setQuery("");
+  }
+
   function toggleOpen() {
     if (disabled) return;
-    setOpen((current) => !current);
+    if (open) {
+      closeMenu();
+      return;
+    }
+    setOpen(true);
   }
 
   function selectCountry(code: string) {
     onChange(code);
-    setOpen(false);
+    closeMenu();
   }
 
   return (
@@ -107,44 +129,61 @@ export function CountrySelect({
         </button>
 
         {isOpen && (
-          <div
-            id={listId}
-            role="listbox"
-            aria-label="Countries"
-            className="absolute z-20 mt-2 max-h-64 w-full overflow-y-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
-          >
-            {countries.length === 0 ? (
-              <p className="px-4 py-3 text-sm text-slate-500">
-                No countries available
-              </p>
-            ) : (
-              countries.map((country) => {
-                const isSelected = country.code === value;
+          <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg">
+            <div className="border-b border-slate-100 p-2">
+              <input
+                ref={searchInputRef}
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search countries"
+                aria-label="Search countries"
+                autoComplete="off"
+                className="w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-sky-300"
+              />
+            </div>
 
-                return (
-                  <button
-                    key={country.code}
-                    type="button"
-                    role="option"
-                    aria-selected={isSelected}
-                    onClick={() => selectCountry(country.code)}
-                    className={`flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-slate-800 hover:bg-slate-50 ${
-                      isSelected ? "bg-sky-50" : ""
-                    }`}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={country.flagPng}
-                      alt=""
-                      width={20}
-                      height={14}
-                      className="h-3.5 w-5 rounded-sm object-cover"
-                    />
-                    <span className="truncate">{country.name}</span>
-                  </button>
-                );
-              })
-            )}
+            <div
+              id={listId}
+              role="listbox"
+              aria-label="Countries"
+              className="max-h-56 overflow-y-auto py-1"
+            >
+              {filteredCountries.length === 0 ? (
+                <p className="px-4 py-3 text-sm text-slate-500">
+                  {countries.length === 0
+                    ? "No countries available"
+                    : "No countries found"}
+                </p>
+              ) : (
+                filteredCountries.map((country) => {
+                  const isSelected = country.code === value;
+
+                  return (
+                    <button
+                      key={country.code}
+                      type="button"
+                      role="option"
+                      aria-selected={isSelected}
+                      onClick={() => selectCountry(country.code)}
+                      className={`flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-slate-800 hover:bg-slate-50 ${
+                        isSelected ? "bg-sky-50" : ""
+                      }`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={country.flagPng}
+                        alt=""
+                        width={20}
+                        height={14}
+                        className="h-3.5 w-5 rounded-sm object-cover"
+                      />
+                      <span className="truncate">{country.name}</span>
+                    </button>
+                  );
+                })
+              )}
+            </div>
           </div>
         )}
       </div>
