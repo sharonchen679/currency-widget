@@ -16,6 +16,11 @@
   --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
 }
 
+/* Reserve scrollbar space so centered content doesn't shift when details expand. */
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   background:
     radial-gradient(1200px 600px at 50% -10%, #dbe7ff 0%, transparent 55%),
