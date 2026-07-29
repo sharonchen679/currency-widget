@@ -79,7 +79,7 @@ function parseErrorMessage(payload: RestListResponse, fallback: string): string 
 async function fetchPage(
   apiKey: string,
   offset: number,
-): Promise<{ objects: RestCountryV5[]; more: boolean }> {
+): Promise<{ objects: RestCountryV5[]; more: boolean; total: number }> {
   const url = new URL(API_BASE);
   url.searchParams.set("limit", String(PAGE_SIZE));
   url.searchParams.set("offset", String(offset));
@@ -159,42 +159,65 @@ async function fetchPage(
     );
   }
 
+  const objects = payload.data?.objects ?? [];
+
   return {
-    objects: payload.data?.objects ?? [],
+    objects,
     more: Boolean(payload.data?.meta?.more),
+    total: payload.data?.meta?.total ?? objects.length,
   };
 }
 
+const MAX_PAGES = 10;
+
 /**
- * Fetches every country page (limit 100) until meta.more is false,
- * normalizes, drops unusable rows, and sorts A–Z by common name.
+ * Fetches every country page (limit 100) in parallel, then normalizes,
+ * drops unusable rows, and sorts A–Z by common name.
  *
- * Quota note (free plan): ~3 requests per cold refresh.
- * With 24h revalidation this stays well under 500 req/month.
+ * Free plan: ~3 requests per cold refresh (same quota as sequential),
+ * but wall-clock time is roughly one round-trip instead of three.
  */
 export async function fetchAllCountriesFromRestCountries(): Promise<Country[]> {
   const apiKey = getApiKey();
-  const rawCountries: RestCountryV5[] = [];
 
-  let offset = 0;
-  let more = true;
-  let pages = 0;
-  const maxPages = 10;
+  // Typical dataset is ~250 countries → offsets 0/100/200 cover it in one wave.
+  const initialOffsets = Array.from(
+    { length: 3 },
+    (_, index) => index * PAGE_SIZE,
+  );
 
-  while (more) {
-    pages += 1;
-    if (pages > maxPages) {
-      throw new RestCountriesError(
-        "Stopped pagination early: unexpected number of pages from REST Countries.",
-        502,
-      );
-    }
+  let pages = await Promise.all(
+    initialOffsets.map((offset) => fetchPage(apiKey, offset)),
+  );
 
-    const page = await fetchPage(apiKey, offset);
-    rawCountries.push(...page.objects);
-    more = page.more;
-    offset += PAGE_SIZE;
+  const total = pages[0]?.total ?? 0;
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  if (pageCount > MAX_PAGES) {
+    throw new RestCountriesError(
+      "Stopped pagination early: unexpected number of pages from REST Countries.",
+      502,
+    );
   }
+
+  // If the dataset grows past 300, fetch the remaining pages together too.
+  if (pageCount > initialOffsets.length) {
+    const extraOffsets = Array.from(
+      { length: pageCount - initialOffsets.length },
+      (_, index) => (index + initialOffsets.length) * PAGE_SIZE,
+    );
+
+    const extraPages = await Promise.all(
+      extraOffsets.map((offset) => fetchPage(apiKey, offset)),
+    );
+
+    pages = [...pages, ...extraPages];
+  }
+
+  // Keep only the pages we actually need (drop empty tail from the optimistic wave).
+  const rawCountries = pages
+    .slice(0, pageCount)
+    .flatMap((page) => page.objects);
 
   return rawCountries
     .map(normalizeCountry)
