@@ -2,8 +2,32 @@
 
 A Next.js country explorer widget that fetches live country data (including currency details) from the [REST Countries](https://restcountries.com/) API.
 
-> Setup and architecture notes will be expanded as the project is built.
+## Stack
 
-## Status
+- Next.js (App Router)
+- TypeScript
+- Tailwind CSS
 
-Project scaffolding in progress.
+## Getting started
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Copy the env example and add your API key:
+
+```bash
+cp .env.example .env
+```
+
+3. Run the dev server:
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+> Full architecture notes will be added as features are implemented.

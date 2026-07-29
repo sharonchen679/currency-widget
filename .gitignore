@@ -29,9 +29,14 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (secrets — never commit)
+# env files (secrets — never commit). Keep .env.example tracked.
 .env
 .env*.local
+.env.development
+.env.production
+.env.test
+
+node_modules/
 
 # vercel
 .vercel
