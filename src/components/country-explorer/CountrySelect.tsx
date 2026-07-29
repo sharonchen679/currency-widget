@@ -2,7 +2,6 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
-import type { KeyboardEvent } from "react";
 import { filterCountries } from "@/lib/countries/filter";
 import type { Country } from "@/types/country";
 
@@ -16,7 +15,6 @@ type CountrySelectProps = {
 
 /**
  * Custom country dropdown with client-side search and keyboard navigation.
- * Custom country dropdown with client-side search and keyboard navigation.
  */
 export function CountrySelect({
   countries,
@@ -28,10 +26,8 @@ export function CountrySelect({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
-  const [activeIndex, setActiveIndex] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const listId = useId();
 
@@ -83,7 +79,9 @@ export function CountrySelect({
   }
 
   function openMenu() {
-    const selectedIndex = countries.findIndex((country) => country.code === value);
+    const selectedIndex = countries.findIndex(
+      (country) => country.code === value,
+    );
     setActiveIndex(selectedIndex >= 0 ? selectedIndex : 0);
     setOpen(true);
   }
@@ -94,7 +92,6 @@ export function CountrySelect({
       closeMenu();
       return;
     }
-    openMenu();
     openMenu();
   }
 
@@ -143,7 +140,11 @@ export function CountrySelect({
   function handleTriggerKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
     if (disabled) return;
 
-    if (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") {
+    if (
+      event.key === "ArrowDown" ||
+      event.key === "Enter" ||
+      event.key === " "
+    ) {
       event.preventDefault();
       if (!open) openMenu();
     }
@@ -163,7 +164,6 @@ export function CountrySelect({
           aria-expanded={isOpen}
           aria-controls={listId}
           onClick={toggleOpen}
-          onKeyDown={handleTriggerKeyDown}
           onKeyDown={handleTriggerKeyDown}
           className="flex w-full items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 text-left text-[15px] shadow-sm outline-none transition enabled:hover:border-sky-300 enabled:focus-visible:border-sky-400 disabled:cursor-not-allowed disabled:text-slate-400"
         >
@@ -216,15 +216,12 @@ export function CountrySelect({
                 aria-label="Search countries"
                 aria-controls={listId}
                 aria-activedescendant={activeOptionId}
-                aria-controls={listId}
-                aria-activedescendant={activeOptionId}
                 autoComplete="off"
                 className="w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-sky-300"
               />
             </div>
 
             <div
-              ref={listRef}
               id={listId}
               ref={listRef}
               role="listbox"
@@ -238,7 +235,6 @@ export function CountrySelect({
                     : "No countries found"}
                 </p>
               ) : (
-                filteredCountries.map((country, index) => {
                 filteredCountries.map((country, index) => {
                   const isSelected = country.code === value;
                   const isActive = index === activeIndex;
